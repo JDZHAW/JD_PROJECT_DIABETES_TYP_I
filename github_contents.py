@@ -1,4 +1,5 @@
-import base64, json
+import base64
+import json
 import pandas as pd
 from requests import Session
 from io import StringIO
@@ -72,7 +73,9 @@ class GithubContents:
         self, filepath, content_bytes, sha=None, commit_message="", committer=None
     ):
         if not isinstance(content_bytes, bytes):
-            raise TypeError("Content_bytes must be a bytestring - better use write_text, write_json or write_df instead.")
+            raise TypeError(
+                "Content_bytes must be a bytestring - better use write_text, write_json or write_df instead."
+            )
         github_url = "{}/contents/{}".format(self.base_url(), filepath)
         payload = {
             "path": filepath,
@@ -173,7 +176,7 @@ class GithubContents:
             ).status_code
             == 200
         )
-    
+
     # --------------- Sam's new read/write methods ---------------
     def file_exists(self, filepath):
         """
@@ -188,9 +191,8 @@ class GithubContents:
         try:
             self.read(filepath)
             return True
-        except:
+        except Exception as _:
             return False
-
 
     def read_text(self, filepath):
         """
@@ -204,7 +206,7 @@ class GithubContents:
         """
         content, _ = self.read(filepath)
         return content.decode("utf-8")
-    
+
     def write_text(self, filepath, text, commit_message):
         """
         Write text to a given filepath on github.
@@ -216,8 +218,8 @@ class GithubContents:
         """
         if not isinstance(text, str):
             raise TypeError("text must be a string")
-        
-        self.write(filepath, text.encode("utf-8"), commit_message = commit_message)
+
+        self.write(filepath, text.encode("utf-8"), commit_message=commit_message)
 
     def write_json(self, filepath, data, commit_message):
         """
@@ -230,8 +232,8 @@ class GithubContents:
         """
         if not isinstance(data, (dict, list)):
             raise TypeError("data must be a dict or list")
-        
-        self.write_text(filepath, json.dumps(data, indent=2), commit_message)   
+
+        self.write_text(filepath, json.dumps(data, indent=2), commit_message)
 
     def read_json(self, filepath):
         """
@@ -244,7 +246,7 @@ class GithubContents:
         - dict or list, the data
         """
         return json.loads(self.read_text(filepath))
-    
+
     def write_df(self, filepath, df, commit_message, **df_to_csv_kwargs):
         """
         Write a dataframe to a given filepath on github.
@@ -257,7 +259,7 @@ class GithubContents:
         """
         if not isinstance(df, pd.DataFrame, **df_to_csv_kwargs):
             raise TypeError("df must be a DataFrame")
-        
+
         self.write_text(filepath, df.to_csv(index=False), commit_message)
 
     def read_df(self, filepath, **pd_read_csv_kwargs):
@@ -275,5 +277,3 @@ class GithubContents:
         string_buffer = StringIO(csv_string)
         df = pd.read_csv(string_buffer, **pd_read_csv_kwargs)
         return df
-
-    
