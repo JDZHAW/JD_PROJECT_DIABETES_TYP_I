@@ -1,8 +1,9 @@
 import base64
 import json
+from io import StringIO
+
 import pandas as pd
 from requests import Session
-from io import StringIO
 
 """
 Sam's notes:
