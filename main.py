@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from enum import Enum
-from github_contents import GithubContents
+from functions.github_contents import GithubContents
 
 DATA_FILE = "diabetes_data.csv"
 
