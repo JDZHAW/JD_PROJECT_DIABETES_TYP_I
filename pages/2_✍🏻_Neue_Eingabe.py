@@ -1,29 +1,8 @@
-from enum import Enum
-
 import pandas as pd
 import streamlit as st
 
 from functions import utils
-from other.constants import GIT_DIABETES_CSV_FILENAME as DATA_FILE
-
-
-class Fields(Enum):
-    DATE = "Datum"
-    TIME_OF_DAY = "Tageszeit"
-    SUGAR = "Blutzuckerwert"
-    INSULIN = "Insulingabe"
-    CARBS = "Kohlenhydrate"
-    FEELING = "Wohlbefinden"
-    FEELING_DESC = "Wohlbefinden Beschreibung"
-
-
-class TimeOfDay(Enum):
-    SOBER = "nüchtern"
-    BEFORE_BREAKFAST = "vor dem Frühstück"
-    BEFORE_LUNCH = "vor dem Mittagessen"
-    BEFORE_DINNER = "vor dem Abendessen"
-    BEFORE_SLEEP = "vor dem Schlafen"
-    ADDITIONAL = "zusätzlich"
+from other.constants import Fields, TimeOfDay
 
 
 def pick_time_to_use(time_of_day, additional_time):
@@ -33,10 +12,21 @@ def pick_time_to_use(time_of_day, additional_time):
 
 
 def create_input_form():
+    st.sidebar.title("Neue Eingabe")
     date = st.sidebar.date_input(Fields.DATE.value)
-    time_of_day = st.sidebar.selectbox(
-        Fields.TIME_OF_DAY.value, [time.value for time in TimeOfDay]
-    )
+    filtered_df = filter_dataframe(date)
+    st.dataframe(filtered_df, hide_index=True)
+
+    existing_times = filtered_df["Tageszeit"].unique()
+    existing_times = [
+        time for time in existing_times if time != TimeOfDay.ADDITIONAL.value
+    ]
+    time_of_day_options = [
+        time.value for time in TimeOfDay if time.value not in existing_times
+    ]
+
+    time_of_day = st.sidebar.selectbox(Fields.TIME_OF_DAY.value, time_of_day_options)
+
     additional_time = None
     if time_of_day == TimeOfDay.ADDITIONAL.value:
         additional_time = st.sidebar.time_input("Uhrzeit")
@@ -68,7 +58,6 @@ def create_input_form():
             st.sidebar.error(f"{key} darf nicht leer sein!")
             return
 
-    # Check if there is a row with the same date and time of day
     if not st.session_state.df.empty:
         date_str = date.strftime("%Y-%m-%d")
         time_str = entry[Fields.TIME_OF_DAY.value]
@@ -93,26 +82,35 @@ def create_input_form():
 
         current_timestamp = pd.Timestamp.now().strftime("%Y%m%d%H%M%S")
         msg = f"Add entry for '{date_str} - {time_str}' at {current_timestamp}"
-        st.session_state.github.write_df(DATA_FILE, st.session_state.df, msg)
+        data_file = utils.get_data_file_name()
+        st.session_state.github.write_df(data_file, st.session_state.df, msg)
+        st.success("Eintrag hinzugefügt!")
 
 
-def init_dataframe():
-    """Initialize or load the dataframe."""
-    if "df" in st.session_state:
-        pass
-    elif st.session_state.github.file_exists(DATA_FILE):
-        st.session_state.df = st.session_state.github.read_df(DATA_FILE)
-    else:
-        columns = [field.value for field in Fields]
-        st.session_state.df = pd.DataFrame(columns=columns)
+def filter_dataframe(date=None):
+    """Only show the data from todays date. Keep date only in datum field like '2024-05-18'"""
+    if date is None:
+        date = pd.Timestamp.now().strftime("%Y-%m-%d")
+
+    df = st.session_state.df.copy()
+    df[Fields.DATE.value] = pd.to_datetime(df[Fields.DATE.value]).dt.date
+
+    date_obj = pd.to_datetime(date).date()
+    return df[df[Fields.DATE.value] == date_obj]
 
 
-def display_dataframe():
-    """Display the DataFrame in the app."""
-    st.dataframe(st.session_state.df)
+def main():
+    if not utils.is_logged_in():
+        utils.redirect_to_login()
+
+    st.set_page_config(page_title="Neue Eingabe", page_icon="✍️", layout="wide")
+    st.title("Heutige Angaben")
+    utils.add_sidebar_title()
+
+    utils.init_github()
+    utils.init_dataframe()
+    create_input_form()
 
 
-utils.init_github()
-init_dataframe()
-create_input_form()
-display_dataframe()
+if __name__ == "__main__":
+    main()
