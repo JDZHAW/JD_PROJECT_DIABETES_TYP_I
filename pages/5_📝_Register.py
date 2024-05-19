@@ -21,12 +21,9 @@ def register_page():
                 st.error("All fields are required.")
                 return
 
-            hashed_password = bcrypt.hashpw(
-                new_password.encode("utf8"), bcrypt.gensalt()
-            )  # Hash the password
-            hashed_password_hex = binascii.hexlify(
-                hashed_password
-            ).decode()  # Convert hash to hexadecimal string
+            utf8_pass = new_password.encode("utf8")
+            hashed_password = bcrypt.hashpw(utf8_pass, bcrypt.gensalt())
+            hashed_password_hex = binascii.hexlify(hashed_password).decode()
 
             # Check if the username already exists
             if new_username in st.session_state.df_users["username"].values:
