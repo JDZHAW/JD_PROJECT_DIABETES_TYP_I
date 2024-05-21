@@ -63,7 +63,7 @@ def main():
     # Restructure the data for Altair
     melted_data = last_x_entries.melt(
         id_vars=["Date_TimeOfDay"],
-        value_vars=["Blutzuckerwert", "Insulindosis", "Kohlenhydrate"],
+        value_vars=["Blutzuckerwert", "Insulindosis"],
         var_name="Measurement",
         value_name="Value",
     )
@@ -82,9 +82,7 @@ def main():
             color="Measurement:N",
             tooltip=["Date_TimeOfDay", "Measurement", "Value"],
         )
-        .properties(
-            title="Blutzuckerwert and Insulindosis Diagramm", width=800, height=400
-        )
+        .properties(width=800, height=400)
         .configure_axis(labelAngle=45)
     )
 
