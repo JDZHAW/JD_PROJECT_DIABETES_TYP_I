@@ -12,7 +12,3 @@ owner="" # GitHub-Benutzername
 repo="" # GitHub-Repository
 token="" # GitHub-Personal Access Token
 ```
-
-
-### Homepage Graph Beispiel
-![Homepage Graph Beispiel](docs/example_homepage_graphs.png)
