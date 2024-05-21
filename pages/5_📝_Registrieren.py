@@ -10,12 +10,12 @@ from other.constants import LOGIN_DATA_COLUMNS, LOGIN_FILE
 
 def register_page():
     """Register a new user."""
-    st.title("Register")
+    st.title("Registrieren")
     with st.form(key="register_form"):
         new_username = st.text_input("Username")
         new_name = st.text_input("Full Name")
         new_password = st.text_input("Password", type="password")
-        if st.form_submit_button("Register"):
+        if st.form_submit_button("Registrieren"):
             # check if any field is empty
             if not new_username or not new_name or not new_password:
                 st.error("All fields are required.")

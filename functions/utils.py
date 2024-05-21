@@ -25,7 +25,7 @@ def is_logged_in():
 
 def redirect_to_login():
     """Redirect to the login page."""
-    st.switch_page("pages/4_🔑_Login.py")
+    st.switch_page("pages/4_🔑_Anmelden.py")
 
 
 def init_credentials():
@@ -79,7 +79,7 @@ def logout():
 
 
 def add_logout_button():
-    st.sidebar.button("Logout", on_click=logout)
+    st.sidebar.button("Abmelden", on_click=logout)
 
 
 def add_download_button():

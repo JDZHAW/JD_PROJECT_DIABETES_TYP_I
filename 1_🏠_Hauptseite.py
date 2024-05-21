@@ -1,3 +1,4 @@
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -9,7 +10,7 @@ def main():
     if not utils.is_logged_in():
         utils.redirect_to_login()
 
-    st.set_page_config(page_title="Homepage", page_icon="🏠", layout="wide")
+    st.set_page_config(page_title="Hauptseite", page_icon="🏠", layout="wide")
     utils.add_sidebar_title()
 
     utils.init_github()
@@ -52,11 +53,40 @@ def main():
 
     df = df.sort_values(by="DateTime")
 
-    last_20_entries = df.tail(20)
+    # Create a new column combining Date and TimeOfDay for grouping
+    df["Date_TimeOfDay"] = df["Datum"].dt.strftime("%Y-%m-%d") + " " + df["Tageszeit"]
 
-    last_20_entries.set_index("DateTime", inplace=True)
-    combined_data = last_20_entries[["Blutzuckerwert", "Insulindosis"]]
-    st.line_chart(combined_data)
+    last_20_entries = df.tail(20).copy()
+
+    # Restructure the data for Altair
+    melted_data = last_20_entries.melt(
+        id_vars=["Date_TimeOfDay"],
+        value_vars=["Blutzuckerwert", "Insulindosis"],
+        var_name="Measurement",
+        value_name="Value",
+    )
+
+    # Plot using Altair
+    bar_chart = (
+        alt.Chart(melted_data)
+        .mark_bar()
+        .encode(
+            x=alt.X(
+                "Date_TimeOfDay:N",
+                title="Date and Time of Day",
+                axis=alt.Axis(labelAngle=45),
+            ),
+            y=alt.Y("Value:Q", title="Measurement Value"),
+            color="Measurement:N",
+            tooltip=["Date_TimeOfDay", "Measurement", "Value"],
+        )
+        .properties(
+            title="Blutzuckerwert and Insulindosis over Time", width=800, height=400
+        )
+        .configure_axis(labelAngle=45)
+    )
+
+    st.altair_chart(bar_chart, use_container_width=True)
 
     st.subheader("Letzte 20 Ausreisser")
     out_of_norm = df[(df[Fields.SUGAR.value] < 3.9) | (df[Fields.SUGAR.value] > 5.6)]

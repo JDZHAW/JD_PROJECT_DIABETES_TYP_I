@@ -80,7 +80,7 @@ def main():
         st.success(
             f"Hurray {st.session_state['username']}!! You are logged in.", icon="🤩"
         )
-        st.switch_page("1_🏠_Homepage.py")
+        st.switch_page("1_🏠_Hauptseite.py")
 
 
 if __name__ == "__main__":
