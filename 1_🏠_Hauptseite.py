@@ -63,7 +63,7 @@ def main():
     # Restructure the data for Altair
     melted_data = last_x_entries.melt(
         id_vars=["Date_TimeOfDay"],
-        value_vars=["Blutzuckerwert", "Insulindosis"],
+        value_vars=["Blutzuckerwert", "Insulindosis", "Kohlenhydrate"],
         var_name="Measurement",
         value_name="Value",
     )
@@ -75,10 +75,10 @@ def main():
         .encode(
             x=alt.X(
                 "Date_TimeOfDay:N",
-                title="Date and Time of Day",
+                title="Datum und Tageszeit",
                 axis=alt.Axis(labelAngle=45),
             ),
-            y=alt.Y("Value:Q", title="Measurement Value"),
+            y=alt.Y("Value:Q", title="Messwert"),
             color="Measurement:N",
             tooltip=["Date_TimeOfDay", "Measurement", "Value"],
         )
