@@ -61,7 +61,7 @@ def get_data_file():
 def init_dataframe():
     """Initialize or load the dataframe."""
     data_file = get_data_file_name()
-    if "df" in st.session_state:
+    if "df" in st.session_state and st.session_state.df is not None:
         pass
     elif st.session_state.github.file_exists(data_file):
         st.session_state.df = st.session_state.github.read_df(data_file)
