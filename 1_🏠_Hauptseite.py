@@ -31,7 +31,9 @@ def main():
 
     last_x_entries_count = 10
 
-    st.subheader(f"Blutzucker/Insulin Diagramm (letzte {last_x_entries_count} Einträge)")
+    st.subheader(
+        f"Blutzucker/Insulin Diagramm (letzte {last_x_entries_count} Einträge)"
+    )
     time_map = {
         "nüchtern": "06:00",
         "vor dem Frühstück": "09:00",
