@@ -83,7 +83,7 @@ def main():
             tooltip=["Date_TimeOfDay", "Measurement", "Value"],
         )
         .properties(
-            title="Blutzuckerwert and Insulindosis over Time", width=800, height=400
+            title="Blutzuckerwert and Insulindosis Diagramm", width=800, height=400
         )
         .configure_axis(labelAngle=45)
     )

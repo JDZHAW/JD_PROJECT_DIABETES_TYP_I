@@ -31,13 +31,13 @@ def create_input_form():
     if time_of_day == TimeOfDay.ADDITIONAL.value:
         additional_time = st.sidebar.time_input("Uhrzeit")
     sugar = st.sidebar.number_input(
-        Fields.SUGAR.value,
+        f"{Fields.SUGAR.value} (mmol/l)",
         step=0.1,
         value=4.5,
         help="Referenzbereich: 3.9 - 5.6 mmol/l",
     )
-    insulin = st.sidebar.number_input(Fields.INSULIN.value, step=1)
-    carbs = st.sidebar.number_input(Fields.CARBS.value, step=1)
+    insulin = st.sidebar.number_input(f"{Fields.INSULIN.value} (IE)", step=1)
+    carbs = st.sidebar.number_input(f"{Fields.CARBS.value} (gramm)", step=1)
     feeling = st.sidebar.selectbox(Fields.FEELING.value, ["gut", "mittel", "schlecht"])
     feeling_desc = st.sidebar.text_area(Fields.FEELING_DESC.value)
 
