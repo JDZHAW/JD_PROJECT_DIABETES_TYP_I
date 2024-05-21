@@ -29,7 +29,9 @@ def main():
 
     df[Fields.DATE.value] = pd.to_datetime(df[Fields.DATE.value])
 
-    st.subheader("Blutzucker/Insulin Diagramm (letzte 20 Einträge)")
+    last_x_entries_count = 10
+
+    st.subheader(f"Blutzucker/Insulin Diagramm (letzte {last_x_entries_count} Einträge)")
     time_map = {
         "nüchtern": "06:00",
         "vor dem Frühstück": "09:00",
@@ -56,10 +58,10 @@ def main():
     # Create a new column combining Date and TimeOfDay for grouping
     df["Date_TimeOfDay"] = df["Datum"].dt.strftime("%Y-%m-%d") + " " + df["Tageszeit"]
 
-    last_20_entries = df.tail(20).copy()
+    last_x_entries = df.tail(last_x_entries_count).copy()
 
     # Restructure the data for Altair
-    melted_data = last_20_entries.melt(
+    melted_data = last_x_entries.melt(
         id_vars=["Date_TimeOfDay"],
         value_vars=["Blutzuckerwert", "Insulindosis"],
         var_name="Measurement",
@@ -88,12 +90,12 @@ def main():
 
     st.altair_chart(bar_chart, use_container_width=True)
 
-    st.subheader("Letzte 20 Ausreisser")
+    st.subheader(f"Letzte {last_x_entries_count} Ausreisser")
     out_of_norm = df[(df[Fields.SUGAR.value] < 3.9) | (df[Fields.SUGAR.value] > 5.6)]
 
-    last_20_out_of_norm = out_of_norm.tail(20)
+    last_x_out_of_norm = out_of_norm.tail(10)
 
-    scatter_data = last_20_out_of_norm[[Fields.DATE.value, Fields.SUGAR.value]]
+    scatter_data = last_x_out_of_norm[[Fields.DATE.value, Fields.SUGAR.value]]
     scatter_data.set_index(Fields.DATE.value, inplace=True)
     st.scatter_chart(scatter_data)
 
