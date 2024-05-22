@@ -27,13 +27,30 @@ def main():
         st.title("Keine Daten vorhanden")
         return
 
-    df[Fields.DATE.value] = pd.to_datetime(df[Fields.DATE.value])
+    last_entries_count = 10
+    create_last_sugar_and_insulin_graph(last_entries_count, df)
+    create_out_of_norm_chart(last_entries_count, df)
 
-    last_x_entries_count = 10
 
-    st.subheader(
-        f"Blutzucker/Insulin Diagramm (letzte {last_x_entries_count} Einträge)"
-    )
+def create_out_of_norm_chart(entries_count, df):
+    df_graph = df.copy()
+    st.subheader(f"Letzte {entries_count} Ausreisser")
+    out_of_norm = df_graph[
+        (df_graph[Fields.SUGAR.value] < 3.9) | (df_graph[Fields.SUGAR.value] > 5.6)
+    ]
+
+    last_x_out_of_norm = out_of_norm.tail(10)
+
+    scatter_data = last_x_out_of_norm[[Fields.DATE.value, Fields.SUGAR.value]]
+    scatter_data.set_index(Fields.DATE.value, inplace=True)
+    st.scatter_chart(scatter_data)
+
+
+def create_last_sugar_and_insulin_graph(entries_count, df):
+    df_graph = df.copy()
+    df_graph[Fields.DATE.value] = pd.to_datetime(df_graph[Fields.DATE.value])
+
+    st.subheader(f"Blutzucker/Insulin Diagramm (letzte {entries_count} Einträge)")
     time_map = {
         "nüchtern": "06:00",
         "vor dem Frühstück": "09:00",
@@ -45,59 +62,38 @@ def main():
 
     # Function to determine the time
     def determine_time(row):
-        if row["Tageszeit"] in time_map:
-            return time_map[row["Tageszeit"]]
+        if row[Fields.TIME_OF_DAY.value] in time_map:
+            return time_map[row[Fields.TIME_OF_DAY.value]]
         else:
-            return row["Tageszeit"]  # Use the time string directly
+            return row[Fields.TIME_OF_DAY.value]  # Use the time string directly
 
-    df["Time"] = df.apply(determine_time, axis=1)
-    df["DateTime"] = pd.to_datetime(
-        df["Datum"].dt.strftime("%Y-%m-%d") + " " + df["Time"]
+    df_graph["Time"] = df_graph.apply(determine_time, axis=1)
+    df_graph["DateTime"] = pd.to_datetime(
+        df_graph[Fields.DATE.value].dt.strftime("%Y-%m-%d") + " " + df_graph["Time"]
     )
 
-    df = df.sort_values(by="DateTime")
+    df_graph = df_graph.sort_values(by="DateTime").tail(entries_count)
+    if "Kohlenhydrate" in df.columns:
+        df_graph = df_graph.drop(columns=["Kohlenhydrate"])
 
-    # Create a new column combining Date and TimeOfDay for grouping
-    df["Date_TimeOfDay"] = df["Datum"].dt.strftime("%Y-%m-%d") + " " + df["Tageszeit"]
+    # Melt the DataFrame for Altair
+    df_graph = df_graph.melt(id_vars="DateTime", var_name="Messwert", value_name="Wert")
 
-    last_x_entries = df.tail(last_x_entries_count).copy()
-
-    # Restructure the data for Altair
-    melted_data = last_x_entries.melt(
-        id_vars=["Date_TimeOfDay"],
-        value_vars=["Blutzuckerwert", "Insulindosis"],
-        var_name="Measurement",
-        value_name="Value",
-    )
-
-    # Plot using Altair
-    bar_chart = (
-        alt.Chart(melted_data)
+    # Create the Altair chart
+    chart = (
+        alt.Chart(df_graph)
         .mark_bar()
         .encode(
-            x=alt.X(
-                "Date_TimeOfDay:N",
-                title="Datum und Tageszeit",
-                axis=alt.Axis(labelAngle=45),
+            x=alt.X("Messwert:N", title=None, axis=alt.Axis(labels=False, ticks=False)),
+            y=alt.Y("Wert:Q", title="Wert"),
+            color="Messwert:N",
+            column=alt.Column(
+                "DateTime:T", title=None, timeUnit="monthdatehoursminutes"
             ),
-            y=alt.Y("Value:Q", title="Messwert"),
-            color="Measurement:N",
-            tooltip=["Date_TimeOfDay", "Measurement", "Value"],
         )
-        .properties(width=800, height=400)
-        .configure_axis(labelAngle=45)
+        .properties(width=50)
     )
-
-    st.altair_chart(bar_chart, use_container_width=True)
-
-    st.subheader(f"Letzte {last_x_entries_count} Ausreisser")
-    out_of_norm = df[(df[Fields.SUGAR.value] < 3.9) | (df[Fields.SUGAR.value] > 5.6)]
-
-    last_x_out_of_norm = out_of_norm.tail(10)
-
-    scatter_data = last_x_out_of_norm[[Fields.DATE.value, Fields.SUGAR.value]]
-    scatter_data.set_index(Fields.DATE.value, inplace=True)
-    st.scatter_chart(scatter_data)
+    st.altair_chart(chart)
 
 
 if __name__ == "__main__":
